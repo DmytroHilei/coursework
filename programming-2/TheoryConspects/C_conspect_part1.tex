@@ -1,0 +1,600 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=0.68in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{tabularx}
+\usepackage{needspace}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{accent}{RGB}{20,90,150}
+\definecolor{accentdark}{RGB}{12,55,95}
+\definecolor{softblue}{RGB}{231,242,252}
+\definecolor{softyellow}{RGB}{255,247,219}
+\definecolor{softred}{RGB}{255,235,235}
+\definecolor{codegray}{RGB}{247,247,247}
+\definecolor{codeframe}{RGB}{170,170,170}
+
+\titleformat{\section}
+  {\Large\bfseries\color{accentdark}}
+  {\thesection}{0.6em}{}
+\titleformat{\subsection}
+  {\normalsize\bfseries\color{accent}}
+  {\thesubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{0.55em}{0.25em}
+\titlespacing*{\subsection}{0pt}{0.35em}{0.15em}
+
+\lstset{
+  language=C,
+  basicstyle=\ttfamily\scriptsize,
+  backgroundcolor=\color{codegray},
+  frame=single,
+  framerule=0.25pt,
+  rulecolor=\color{codeframe},
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  breaklines=true,
+  tabsize=4,
+  xleftmargin=2pt,
+  xrightmargin=2pt,
+  aboveskip=3pt,
+  belowskip=4pt,
+  captionpos=b
+}
+\lstdefinelanguage{make}{morekeywords={CC,BIN,OBJ,all,run,check,clean},sensitive=false,morecomment=[l]{\#}}
+
+\newcommand{\idea}{\noindent\textbf{\textcolor{accentdark}{Idea.}} }
+\newcommand{\theory}{\noindent\textbf{\textcolor{accentdark}{Exam theory.}} }
+\newcommand{\codepart}[1]{\Needspace{6\baselineskip}\subsection*{#1}}
+\newcommand{\important}[1]{\par\smallskip\noindent\colorbox{softyellow}{\parbox{\dimexpr\linewidth-2\fboxsep}{\textbf{\textcolor{accentdark}{Important.}} #1}}\par\smallskip}
+\newcommand{\danger}[1]{\par\smallskip\noindent\colorbox{softred}{\parbox{\dimexpr\linewidth-2\fboxsep}{\textbf{Danger.} #1}}\par\smallskip}
+\newcommand{\minihead}[1]{\par\smallskip\noindent\colorbox{softblue}{\parbox{\dimexpr\linewidth-2\fboxsep}{\textbf{#1}}}\par\smallskip}
+
+\setlist[itemize]{leftmargin=1.25em,itemsep=0.05em,topsep=0.1em}
+\setlist[enumerate]{leftmargin=1.4em,itemsep=0.05em,topsep=0.1em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.18em}
+\pagestyle{plain}
+
+\begin{document}
+
+\begin{center}
+{\Large \textbf{C Exam Conspect}}\\[-0.1em]
+{\small Pointers, enums, structs, files, dynamic memory, qsort, Makefile, logging/debugging.}\\[-0.1em]
+{\small Practical exam focus: \texttt{gcc}, \texttt{valgrind}, \texttt{make}, and correct memory/file handling.}
+\end{center}
+\vspace{-0.6em}
+\tableofcontents
+\vspace{0.2em}
+
+\section{Build, tools, and project organization}
+\idea A C project should be divided into small files with clear responsibility. Header files describe the interface; source files implement the functions.
+
+\theory A \texttt{.h} file normally contains macros, enums, structs, typedefs, and function prototypes. A \texttt{.c} file contains function definitions. Splitting code improves readability, reuse, and build time, because a Makefile can recompile only files affected by changes.
+
+\begin{lstlisting}[caption={Minimal compile, run, and Valgrind usage}]
+gcc -o program main.c students.c
+./program
+valgrind ./program
+valgrind --leak-check=full ./program
+\end{lstlisting}
+
+\important{For the exam, keep the tooling simple: know how to compile with \texttt{gcc}, run memory checks with \texttt{valgrind}, and automate build commands with a \texttt{Makefile}. Tools like \texttt{gdb}, ASan, and linters exist, but they are only a small side note here.}
+
+\section{Headers, include guards, and code division}
+\idea A header is the public contract of a module. Other files include it to know what types and functions are available.
+
+\begin{lstlisting}[caption={students.h}]
+#ifndef STUDENTS_H
+#define STUDENTS_H
+
+typedef struct {
+    int id;
+    char *firstName;
+    char *lastName;
+    double grade;
+} Student;
+
+void FreeStudents(Student *arr, int count);
+int AppendStudent(Student **arr, int *count, int *cap,
+                  int id, const char *first,
+                  const char *last, double grade);
+int ReadStudents(const char *fileName, Student **outArr, int *outCount);
+
+#endif
+\end{lstlisting}
+
+\theory Include guards prevent the same declarations from being processed multiple times. \texttt{\#include <stdio.h>} is used for standard/system headers. \texttt{\#include "students.h"} is used for your own headers. Avoid full paths in includes.
+
+\important{Do not put ordinary function definitions or normal global variable definitions into headers. If a function body is placed in a header and included in several \texttt{.c} files, the linker may see several definitions of the same function.}
+
+\section{Accurate input handling and buffers}
+\idea A buffer is a temporary memory area used to receive input before validating, printing, or copying it into permanent storage.
+
+\theory C does not automatically know how much data the user or file will provide. A fixed array like \texttt{char name[64]} has space for 63 visible characters plus the final \texttt{'\textbackslash0'}. If input writes more than the object can hold, the program has a buffer overflow. Overflow can corrupt nearby variables, heap metadata, return addresses, or simply produce wrong output. The result is undefined behavior, so the visible symptom may change between runs or systems.
+
+\begin{lstlisting}[caption={Width-limited string read}]
+char name[64];
+scanf("%63s", name);       // max 63 chars + '\0'
+\end{lstlisting}
+
+\important{For \texttt{char buf[N]}, use \texttt{\%Ns} with width \texttt{N-1}. Width is not optional decoration; it is what prevents writing past the buffer.}
+
+\minihead{When can overflow happen?}
+\begin{itemize}
+\item Reading with \texttt{\%s} without width: \texttt{scanf("\%s", buf)}.
+\item Copying a longer string into a smaller array with \texttt{strcpy}.
+\item Forgetting space for the string terminator \texttt{'\textbackslash0'}.
+\item Writing past dynamically allocated memory, e.g. allocated \texttt{n} elements but writing index \texttt{n}.
+\end{itemize}
+
+\section{Text files, CSV, and data modelling}
+\idea Text files store characters. Ordinary files often use spaces or newlines as separators. CSV files use commas. In both cases, \texttt{fscanf} returns how many fields were successfully read, and that return value must be checked.
+
+\begin{lstlisting}[caption={Ordinary whitespace-separated file reading}]
+// data.txt: 101 Anna Smith 91.5
+FILE *fp = fopen("data.txt", "r");
+if (fp == NULL) return 1;
+
+int id;
+char first[64], last[64];
+double grade;
+while (fscanf(fp, "%d %63s %63s %lf",
+              &id, first, last, &grade) == 4) {
+    printf("%d %s %s %.1f\n", id, first, last, grade);
+}
+fclose(fp);
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Simple CSV with fscanf}]
+// students.csv: 101,Anna,Smith,91.5
+while (fscanf(fp, "%d,%63[^,],%63[^,],%lf",
+              &id, first, last, &grade) == 4) {
+    printf("%d %s %s %.1f\n", id, first, last, grade);
+}
+\end{lstlisting}
+
+\theory In \texttt{fscanf}, whitespace in the format usually means ``skip any amount of whitespace''. A literal comma in the format means the next input character must be a comma. The pattern \texttt{\%63[\^,]} reads up to 63 characters until a comma is reached.
+
+\minihead{Relational data idea}
+Relational data contains several connected entities. A primary key uniquely identifies one row. A foreign key refers to another entity's primary key. Example: \texttt{Person(id)} and \texttt{Vehicle(person\_id)}. UML/ERD diagrams show entities, attributes, keys, and relationships. In C, a row is often represented as a struct, and several rows as an array of structs.
+
+\section{Enums}
+\idea An enum is a set of named integer constants. It is useful for states, categories, modes, and error codes.
+
+\begin{lstlisting}[caption={State and error enums}]
+enum DevStatus {
+    STATUS_OFF,
+    STATUS_IDLE,
+    STATUS_READY,
+    STATUS_DONE
+};
+
+enum ErrorState {
+    ERR_NONE,
+    ERR_WRONG_STATE,
+    ERR_NO_WATER
+};
+\end{lstlisting}
+
+\theory By default, enum values start at 0 and increase by 1. Manual values are allowed, and duplicate values are technically allowed. Enums are clearer than unrelated \texttt{\#define} constants because they group related names and make code easier to read. Type checking is limited, because C still treats enum values mostly like integers.
+
+\important{Enumerator names must be unique in their scope. Use prefixes such as \texttt{PUMP\_OFF}, \texttt{CU\_IDLE}, \texttt{ERR\_NONE}. Without prefixes, two enums can both try to define \texttt{IDLE}; this causes a redeclaration error.}
+
+\begin{lstlisting}[caption={Enum returned from a function}]
+enum ErrorState IsReady(enum DevStatus st, float water)
+{
+    if (st != STATUS_IDLE) return ERR_WRONG_STATE;
+    if (water < 15.0f) return ERR_NO_WATER;
+    return ERR_NONE;
+}
+\end{lstlisting}
+
+\section{Structs and nested structs}
+\idea A struct groups related fields into one logical object. Members can be primitive types, arrays, pointers, enums, or other structs.
+
+\begin{lstlisting}[caption={Struct declaration and initialization}]
+typedef struct {
+    int id;
+    char firstName[32];
+    char lastName[32];
+    double grade;
+    enum DevStatus status;
+} FixedStudent;
+
+FixedStudent a = {101, "Anna", "Smith", 91.5, STATUS_READY};
+FixedStudent b = {.id = 102, .grade = 78.0};
+\end{lstlisting}
+
+\theory Struct size can be larger than the sum of member sizes because the compiler can add padding for alignment. Struct assignment copies all members. If a member is an array, the array content is copied. If a member is a pointer, only the address is copied; the pointed data is not duplicated.
+
+\begin{lstlisting}[caption={Dot and arrow operators}]
+FixedStudent s;
+FixedStudent *p = &s;
+
+s.grade = 90.0;       // object.member
+p->grade = 95.0;      // pointer->member
+(*p).grade = 95.0;    // same meaning, uglier
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Nested struct}]
+typedef struct { unsigned day, month, year; } Date;
+
+typedef struct {
+    char name[32];
+    Date contractDate;
+} Person;
+
+Person p;
+p.contractDate.year = 2026;
+\end{lstlisting}
+
+\danger{If a struct contains \texttt{char *name}, copying the struct copies only the pointer. Two structs may then point to the same string. Changing through one changes the shared string, and freeing both can cause double free.}
+
+\section{Pointers}
+\idea A pointer stores a memory address. The pointer and the object it points to are separate objects.
+
+\begin{lstlisting}[caption={Basic pointer operations}]
+int num = 25;
+int *p = &num;
+
+printf("%p\n", (void *)p);  // address stored in p
+printf("%d\n", *p);         // value at that address
+*p = 55;                    // changes num
+\end{lstlisting}
+
+\theory \texttt{\&x} means address of \texttt{x}. \texttt{*p} dereferences pointer \texttt{p}. In a declaration, \texttt{int *p} declares a pointer. In an expression, \texttt{*p} accesses the pointed-to object. \texttt{NULL} means the pointer points to nothing useful. Dereferencing \texttt{NULL} or a dangling pointer is undefined behavior.
+
+\begin{lstlisting}[caption={Pointer with scanf and function parameter}]
+void SetVal(int *val)
+{
+    *val = 55;
+}
+
+int main(void)
+{
+    int num;
+    int *p = &num;
+    scanf("%d", p);     // p already contains &num
+    SetVal(&num);       // function can modify num
+    return 0;
+}
+\end{lstlisting}
+
+\important{Variables are passed by value: the function receives a copy. Passing a pointer means the copied value is an address, so the function can access and modify the original object. Arrays passed to functions decay to pointers to their first element.}
+
+\section{Double pointers, arrays, and pointer arithmetic}
+\idea A double pointer stores the address of a pointer. It is used when a function must change the caller's pointer itself.
+
+\begin{lstlisting}[caption={Allocation through double pointer}]
+int AllocateData(int **data, int n)
+{
+    *data = malloc(sizeof(int) * n);
+    if (*data == NULL) return 0;
+    return 1;
+}
+
+int *arr = NULL;
+if (AllocateData(&arr, 10)) {
+    arr[0] = 5;
+    free(arr);
+}
+\end{lstlisting}
+
+\theory Dereferencing once gives the inner pointer; dereferencing twice gives the final object. Pointer arithmetic moves in units of the pointed type. If \texttt{p} is \texttt{int *}, then \texttt{p + 1} points to the next \texttt{int}, not the next byte. Array indexing \texttt{p[i]} means \texttt{*(p+i)}.
+
+\begin{lstlisting}[caption={Pointer arithmetic and indexing}]
+int *p = malloc(sizeof(int) * 3);
+p[0] = 5;
+*(p + 1) = 3;
+p[2] = 7;
+free(p);
+\end{lstlisting}
+
+\important{Knowing an address does not extend lifetime. Do not return the address of a local variable. The local variable disappears when the function returns, even if you memorized its address .}
+
+\section{Dynamic memory: malloc, calloc, free}
+\idea Dynamic memory is allocated at runtime on the heap. Use it when size is unknown, large, changes during runtime, or must outlive the current function.
+
+\theory Local variables and local arrays usually live on the stack and are valid only in their scope. Dynamic memory remains valid until \texttt{free} is called, provided the program still has a pointer to it. Allocation can fail and return \texttt{NULL}. \texttt{malloc} returns uninitialized memory. \texttt{calloc} returns zero-initialized memory.
+
+\begin{lstlisting}[caption={malloc, calloc, and free}]
+int *a = malloc(sizeof(int) * n);
+if (a == NULL) return 1;
+
+int *b = calloc(n, sizeof(int));
+if (b == NULL) {
+    free(a);
+    return 1;
+}
+
+free(a);
+free(b);
+a = NULL;
+b = NULL;
+\end{lstlisting}
+
+\minihead{Typical allocation workflow}
+\begin{enumerate}
+\item Include \texttt{<stdlib.h>}.
+\item Declare a pointer of suitable type.
+\item Compute bytes using \texttt{sizeof}, not magic numbers.
+\item Allocate memory.
+\item Check for \texttt{NULL}.
+\item Use memory only inside allocated bounds.
+\item Free memory exactly once when no longer needed.
+\end{enumerate}
+
+\danger{Memory leakage can be caused by forgetting \texttt{free}, losing the only pointer to allocated memory, returning early without cleanup, forgetting to free pointer members inside structs, or overwriting the old pointer with failed \texttt{realloc}.}
+
+\section{Strings, sizeof, strlen, and ownership}
+\idea A C string is a character sequence ending with \texttt{'\textbackslash0'}. A \texttt{char *} can point to a string, but it does not automatically mean ownership.
+
+\begin{lstlisting}[caption={Allocate exact memory for a string}]
+char buf[128];
+scanf("%127s", buf);
+
+char *name = malloc(strlen(buf) + 1);
+if (name == NULL) return 1;
+strcpy(name, buf);
+
+free(name);
+\end{lstlisting}
+
+\theory \texttt{sizeof(arr)} gives the size in bytes of the actual array only in the scope where the array was declared. In a function parameter like \texttt{char arr[]} or \texttt{char *arr}, \texttt{sizeof(arr)} gives pointer size. \texttt{strlen(s)} counts characters before \texttt{'\textbackslash0'}, not allocated capacity.
+
+\begin{lstlisting}[caption={sizeof versus strlen}]
+char arr[10] = "Hello!";
+sizeof(arr);     // 10 bytes
+strlen(arr);     // 6 characters
+sizeof(char *);  // pointer size, often 8 on 64-bit
+\end{lstlisting}
+
+\important{Ownership means responsibility for freeing. If your code allocates memory for a string, your code must eventually free it exactly once. If you merely point to a string stored elsewhere, do not free it unless ownership was explicitly given.}
+
+\section{realloc and efficient dynamic arrays}
+\idea \texttt{realloc} changes the size of a dynamically allocated block. It may keep the same address, move data to a new address, or fail.
+
+\begin{lstlisting}[caption={Correct realloc pattern}]
+Student *tmp = realloc(students, sizeof(Student) * newCap);
+if (tmp == NULL) {
+    // students is still valid here
+    FreeStudents(students, count);
+    return 1;
+}
+students = tmp;
+capacity = newCap;
+\end{lstlisting}
+
+\theory Never write \texttt{data = realloc(data, newSize)} directly. If allocation fails, \texttt{NULL} is returned and the old pointer is lost, producing a memory leak. Growing an array by one element each time causes many reallocations. A better algorithm keeps \texttt{count} and \texttt{capacity}; when full, capacity doubles: \texttt{2,4,8,16,...}. For \texttt{N} inserted elements, this gives about \texttt{log2(N)} reallocations instead of \texttt{N} reallocations.
+
+\begin{lstlisting}[caption={Capacity-doubling insertion idea}]
+if (count == capacity) {
+    int newCap = (capacity == 0) ? 2 : capacity * 2;
+    Item *tmp = realloc(items, sizeof(Item) * newCap);
+    if (tmp == NULL) { /* cleanup or recover */ }
+    items = tmp;
+    capacity = newCap;
+}
+items[count++] = newItem;
+\end{lstlisting}
+
+\important{Newly added memory after growing is uninitialized. Shrinking can discard data at the end. \texttt{realloc(NULL, size)} behaves like \texttt{malloc(size)}.}
+
+\section{Full dynamic file-reading program}
+\idea This project reads an ordinary whitespace-separated file using \texttt{fscanf}. The array of structs grows with capacity doubling. Each struct owns two dynamically allocated strings. Functions are split by responsibility so each part is easier to read and revise.
+
+\codepart{Input file}
+\begin{lstlisting}[caption={data.txt}]
+101 Anna Smith 91.5
+102 Bob Miller 78.0
+103 Clara Brown 88.2
+\end{lstlisting}
+
+\codepart{students.c: includes and string copy}
+\begin{lstlisting}[caption={students.c, part 1}]
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "students.h"
+
+static char *CopyString(const char *src)
+{
+    char *dst = malloc(strlen(src) + 1);
+    if (dst == NULL) return NULL;
+    strcpy(dst, src);
+    return dst;
+}
+\end{lstlisting}
+
+\codepart{students.c: cleanup function}
+\begin{lstlisting}[caption={students.c, part 2}]
+void FreeStudents(Student *arr, int count)
+{
+    for (int i = 0; i < count; i++) {
+        free(arr[i].firstName);
+        free(arr[i].lastName);
+    }
+    free(arr);
+}
+\end{lstlisting}
+
+\Needspace{42\baselineskip}
+\codepart{students.c: append with capacity doubling}
+\begin{lstlisting}[caption={students.c, part 3}]
+int AppendStudent(Student **arr, int *count, int *cap,
+                  int id, const char *first,
+                  const char *last, double grade)
+{
+    if (*count == *cap) {
+        int newCap = (*cap == 0) ? 2 : (*cap * 2);
+        Student *tmp = realloc(*arr, sizeof(Student) * newCap);
+        if (tmp == NULL) return 0;
+        *arr = tmp;
+        *cap = newCap;
+    }
+
+    Student s;
+    s.id = id;
+    s.grade = grade;
+    s.firstName = CopyString(first);
+    s.lastName = CopyString(last);
+
+    if (s.firstName == NULL || s.lastName == NULL) {
+        free(s.firstName);
+        free(s.lastName);
+        return 0;
+    }
+
+    (*arr)[*count] = s;
+    (*count)++;
+    return 1;
+}
+\end{lstlisting}
+
+\Needspace{42\baselineskip}
+\codepart{students.c: reading from file}
+\begin{lstlisting}[caption={students.c, part 4}]
+int ReadStudents(const char *fileName, Student **outArr, int *outCount)
+{
+    FILE *fp = fopen(fileName, "r");
+    if (fp == NULL) return 0;
+
+    Student *students = NULL;
+    int count = 0, capacity = 0;
+    int id;
+    char firstBuf[128], lastBuf[128];
+    double grade;
+
+    while (fscanf(fp, "%d %127s %127s %lf",
+                  &id, firstBuf, lastBuf, &grade) == 4) {
+        if (!AppendStudent(&students, &count, &capacity,
+                           id, firstBuf, lastBuf, grade)) {
+            fclose(fp);
+            FreeStudents(students, count);
+            return 0;
+        }
+    }
+
+    fclose(fp);
+    *outArr = students;
+    *outCount = count;
+    return 1;
+}
+\end{lstlisting}
+
+\Needspace{34\baselineskip}
+\codepart{main.c}
+\begin{lstlisting}[caption={main.c}]
+#include <stdio.h>
+#include "students.h"
+
+int main(void)
+{
+    Student *students = NULL;
+    int count = 0;
+
+    if (!ReadStudents("data.txt", &students, &count)) {
+        fprintf(stderr, "Could not read data.txt\n");
+        return 1;
+    }
+
+    for (int i = 0; i < count; i++) {
+        printf("%d %s %s %.1f\n", students[i].id,
+               students[i].firstName,
+               students[i].lastName,
+               students[i].grade);
+    }
+
+    FreeStudents(students, count);
+    return 0;
+}
+\end{lstlisting}
+
+\important{The buffers \texttt{firstBuf} and \texttt{lastBuf} are temporary. Every successful read overwrites them. Therefore each name is copied into separate heap memory before appending the struct. Cleanup must free \texttt{firstName}, \texttt{lastName}, and finally the struct array.}
+
+\section{Makefile for the full program}
+\idea The Makefile builds the program from multiple source files, runs it, checks it with Valgrind, and removes generated files.
+
+\Needspace{35\baselineskip}
+\begin{lstlisting}[language=make,caption={Makefile}]
+CC = gcc
+BIN = students
+OBJ = main.o students.o
+
+all: $(OBJ)
+	$(CC) -o $(BIN) $(OBJ)
+
+main.o: main.c students.h
+	$(CC) -c main.c
+
+students.o: students.c students.h
+	$(CC) -c students.c
+
+run: all
+	./$(BIN)
+
+check: all
+	valgrind --leak-check=full ./$(BIN)
+
+.PHONY: all run check clean
+clean:
+	rm -f *.o $(BIN)
+\end{lstlisting}
+
+\theory A target has dependencies and commands. Commands must start with a real tab. The first target is the default when running \texttt{make}. \texttt{.PHONY} marks targets that do not create files named \texttt{run}, \texttt{check}, or \texttt{clean}.
+
+\section{Function pointers and qsort}
+\idea A function has an address. A function pointer stores that address and can call the function indirectly.
+
+\begin{lstlisting}[caption={Function pointer as parameter}]
+int Add(int a, int b) { return a + b; }
+int Sub(int a, int b) { return a - b; }
+
+int Calc(int a, int b, int (*op)(int, int))
+{
+    return op(a, b);
+}
+\end{lstlisting}
+
+\theory Function pointers are used for callbacks and generic algorithms. \texttt{qsort} is a generic sorting function. It knows how to sort, but it does not know your data type, so you provide a comparison function.
+
+\begin{lstlisting}[caption={qsort on Student structs}]
+#include <stdlib.h>
+
+int CompareByGrade(const void *a, const void *b)
+{
+    const Student *s1 = a;
+    const Student *s2 = b;
+    if (s1->grade > s2->grade) return 1;
+    if (s1->grade < s2->grade) return -1;
+    return 0;
+}
+
+qsort(students, count, sizeof(students[0]), CompareByGrade);
+\end{lstlisting}
+
+\important{The compare function returns negative if the first element should go before the second, zero if equal for ordering, and positive if it should go after. Avoid \texttt{return x-y;} for integers because subtraction can overflow. Typical \texttt{qsort} time is about \texttt{O(n log n)}, much better than \texttt{O(n\^{}2)} bubble sort for large arrays.}
+
+\section{Logging and debugging basics}
+\idea Logging records program behavior. Debugging finds why behavior differs from expectation.
+
+\begin{lstlisting}[caption={Simple file logging}]
+FILE *log = fopen("app.log", "a");
+if (log != NULL) {
+    fprintf(log, "Program started\n");
+    fclose(log);
+}
+\end{lstlisting}
+
+\theory Logs are used for traceability, debugging, and analytics. They are often timestamped and may have levels such as error, warning, and info. In small exam programs, simple \texttt{fprintf} messages are enough. Valgrind is useful for memory bugs: invalid read/write, uninitialized values, leaks, double free, and use-after-free.
+
+\important{Always check \texttt{fopen}. Always close opened files. Run Valgrind after code using \texttt{malloc}, \texttt{calloc}, \texttt{realloc}, pointer members inside structs, and error paths. These are the most common places where memory bugs appear.}
+
+\end{document}

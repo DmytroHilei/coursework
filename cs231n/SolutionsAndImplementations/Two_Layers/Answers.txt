@@ -1,0 +1,36 @@
+## Inline Question 1:
+
+We've only asked you to implement ReLU, but there are many activation functions one could use in neural networks, each with its pros and cons. In particular, an issue commonly seen with activation functions is a zero (or near-zero) gradient during backpropagation. Which of the following activation functions have this problem? If you consider these functions in the one-dimensional case, what types of input would lead to this behavior?
+1. Sigmoid
+2. ReLU
+3. Leaky ReLU
+
+$\color{blue}{\textit Your Answer:}$ *Fill this in*
+
+
+The worst is sigmoid with gradient vanishing for both very big arguments and very small arguments. 
+For ReLU, it is only for x < 0
+For leaky ReLU - rarely
+
+A few words about leaky ReLU - it was kind of new for me - it uses the rule that looks like this
+x, if x > 0
+alpha * x if x <= 0 - alpha - very small, almost 0, but we do not lose gradient
+
+
+## Inline Question 2:
+
+Now that you have trained a Neural Network classifier, you may find that your testing accuracy is much lower than the training accuracy. In what ways can we decrease this gap? Select all that apply.
+
+1. Train on a larger dataset.
+2. Add more hidden units.
+3. Increase the regularization strength.
+4. None of the above.
+
+$\color{blue}{\textit Your Answer:}$
+
+$\color{blue}{\textit Your Explanation:}$
+
+
+
+Bigger dataset - less overfitting
+Better regularization - again, less overfitting

@@ -1,0 +1,552 @@
+\documentclass[9pt,a4paper]{article}
+\usepackage[margin=0.55in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{multicol}
+\usepackage{hyperref}
+\usepackage{tcolorbox}
+\usepackage{listings}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{microtype}
+\tcbuselibrary{skins,breakable,listings}
+
+\definecolor{mainblue}{HTML}{1F5A9D}
+\definecolor{darkblue}{HTML}{12375C}
+\definecolor{softblue}{HTML}{EAF3FF}
+\definecolor{softyellow}{HTML}{FFF7DA}
+\definecolor{softred}{HTML}{FFECEC}
+\definecolor{softgreen}{HTML}{EAF8EA}
+\definecolor{codebg}{HTML}{F7F7F7}
+\definecolor{codeframe}{HTML}{D0D0D0}
+
+\hypersetup{colorlinks=true,linkcolor=mainblue,urlcolor=mainblue}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Programming II - Part 2 Exam Conspect}
+\rhead{\thepage/\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\titleformat{\section}{\large\bfseries\color{white}}{}{0em}{\colorsection}
+\newcommand{\colorsection}[1]{\colorbox{mainblue}{\parbox{0.97\linewidth}{\strut #1\strut}}}
+\titleformat{\subsection}{\normalsize\bfseries\color{darkblue}}{\thesubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{0.8em}{0.45em}
+\titlespacing*{\subsection}{0pt}{0.45em}{0.2em}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2.5pt}
+\setlist[itemize]{leftmargin=*, itemsep=1pt, topsep=1pt}
+\setlist[enumerate]{leftmargin=*, itemsep=1pt, topsep=1pt}
+
+\lstdefinestyle{cstyle}{
+  language=C,
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{mainblue}\bfseries,
+  commentstyle=\color{gray},
+  stringstyle=\color{teal!70!black},
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{codeframe},
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  breaklines=true,
+  tabsize=4,
+  aboveskip=3pt,
+  belowskip=3pt
+}
+\lstdefinestyle{sqlstyle}{
+  language=SQL,
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{mainblue}\bfseries,
+  commentstyle=\color{gray},
+  stringstyle=\color{teal!70!black},
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{codeframe},
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  breaklines=true,
+  tabsize=4,
+  aboveskip=3pt,
+  belowskip=3pt
+}
+
+\newtcolorbox{idea}{colback=softblue,colframe=mainblue,title=Idea,fonttitle=\bfseries,boxrule=0.5pt,arc=1mm,left=4pt,right=4pt,top=2pt,bottom=2pt}
+\newtcolorbox{exam}{colback=softyellow,colframe=orange!70!black,title=Exam answer,fonttitle=\bfseries,boxrule=0.5pt,arc=1mm,left=4pt,right=4pt,top=2pt,bottom=2pt}
+\newtcolorbox{danger}{colback=softred,colframe=red!70!black,title=Important / danger,fonttitle=\bfseries,boxrule=0.5pt,arc=1mm,left=4pt,right=4pt,top=2pt,bottom=2pt}
+\newtcolorbox{note}{colback=softgreen,colframe=green!45!black,title=Notes,fonttitle=\bfseries,boxrule=0.5pt,arc=1mm,left=4pt,right=4pt,top=2pt,bottom=2pt}
+\newtcolorbox{codebox}[1]{colback=codebg,colframe=codeframe,title={#1},fonttitle=\bfseries,boxrule=0.4pt,arc=1mm,left=2pt,right=2pt,top=2pt,bottom=2pt,before skip=3pt,after skip=3pt}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE \textbf{Programming II - Part 2 Exam Conspect}}\\[-1pt]
+  {\small Recursion, stacks, linked lists, trees, timing, SQL, sample test strategy, tiny microcontroller summary}
+\end{center}
+\vspace{-0.5em}
+\tableofcontents
+\vspace{0.5em}
+
+\section{Recursion}
+\begin{idea}
+Recursion means solving a problem by calling the same function on a smaller version of the same problem. It is natural for divide-and-conquer algorithms and self-similar data structures such as trees.
+\end{idea}
+
+\textbf{Theory.} A recursive function must have: \textbf{base case} (when to stop) and \textbf{recursive step} (how to reduce the problem). Each call creates a new function call stack frame. Too many nested calls or a missing base case can cause stack overflow. Most recursive algorithms can be rewritten iteratively, but not always with the same clarity.
+
+\begin{codebox}{Factorial example}
+\begin{lstlisting}[style=cstyle]
+int Factorial(int n)
+{
+    if (n <= 1)        // base case: 0! = 1, 1! = 1
+        return 1;
+    return n * Factorial(n - 1);   // recursive step
+}
+\end{lstlisting}
+\end{codebox}
+
+\begin{exam}
+\textbf{Why does recursion need a base case?} Without a base case, the function keeps calling itself forever. Every call uses stack memory, so the program will eventually crash with stack overflow.\par
+\textbf{Recursive vs iterative.} Recursive code is often cleaner for trees/search/sorting, but it uses more stack memory. Iterative code can be more memory-safe for very deep input.
+\end{exam}
+
+\section{Stack Abstract Data Type}
+\begin{idea}
+A stack is an abstract data type with \textbf{LIFO}: last in, first out. Only the top element is directly accessible, because apparently random access was too much freedom for one data structure.
+\end{idea}
+
+\textbf{Core operations.} \code{Push} adds to top, \code{Pop} removes and returns top, \code{Peek} reads top without removing it. Optional operations include duplicate, swap, rotate, display. Common uses: function call stack, backtracking, syntax evaluation, postfix notation, iterative versions of recursive algorithms.
+
+\begin{danger}
+\textbf{Stack overflow:} push into full stack. \textbf{Stack underflow:} pop from empty stack. Array-based stacks need capacity checks. Linked-list stacks need allocation checks.
+\end{danger}
+
+\begin{codebox}{Small dynamic-array stack}
+\begin{lstlisting}[style=cstyle]
+typedef struct {
+    int *items;
+    int size;      // number of elements currently stored
+    int capacity;  // allocated length
+} Stack;
+
+int Push(Stack *s, int value)
+{
+    if (s->size == s->capacity) {
+        int newCap = (s->capacity == 0) ? 4 : s->capacity * 2;
+        int *tmp = realloc(s->items, sizeof(int) * newCap);
+        if (tmp == NULL) return 0;
+        s->items = tmp;
+        s->capacity = newCap;
+    }
+    s->items[s->size++] = value;
+    return 1;
+}
+
+int Pop(Stack *s, int *out)
+{
+    if (s->size == 0) return 0;     // underflow
+    *out = s->items[--s->size];
+    return 1;
+}
+\end{lstlisting}
+\end{codebox}
+
+\begin{exam}
+\textbf{Why is stack access fast?} Because only the top element is used. Push/pop do not require searching through all stored data.\par
+\textbf{Array vs linked-list stack.} Array stack uses sequential memory and may need resizing. Linked-list stack allocates one node at a time and avoids large continuous memory requirement, but each node has pointer overhead.
+\end{exam}
+
+\section{Linked Lists}
+\begin{idea}
+A linked list is made of nodes allocated individually on the heap. Nodes are independent memory blocks connected by pointers. The program must keep at least \code{pHead}; often also \code{pTail} for faster append.
+\end{idea}
+
+\textbf{Theory.} In a singly linked list, each node has \code{pNext}. The last node has \code{pNext == NULL}. A doubly linked list also has \code{pPrev}, so traversal works both directions and deletion is easier, but memory overhead and pointer setup are larger. Linked lists help with memory fragmentation because nodes do not need one large continuous block.
+
+\begin{danger}
+Adding/removing nodes means changing pointers in the correct order. If you lose the only pointer to a node, memory leaks. If you use a freed node, undefined behavior. If you forget to update \code{pHead}, the list becomes inaccessible, which is a very C way of saying ``gone forever''.
+\end{danger}
+
+\begin{codebox}{Full singly linked list: declaration and helper}
+\begin{lstlisting}[style=cstyle]
+typedef struct Node {
+    int id;
+    char *name;
+    struct Node *pNext;
+} Node;
+
+static char *CopyString(const char *s)
+{
+    char *p = malloc(strlen(s) + 1);
+    if (p != NULL) strcpy(p, s);
+    return p;
+}
+\end{lstlisting}
+\end{codebox}
+
+\begin{codebox}{Insert at front and at end}
+\begin{lstlisting}[style=cstyle]
+int PushFront(Node **ppHead, int id, const char *name)
+{
+    Node *pNew = malloc(sizeof(Node));
+    if (pNew == NULL) return 0;
+    pNew->name = CopyString(name);
+    if (pNew->name == NULL) { free(pNew); return 0; }
+
+    pNew->id = id;
+    pNew->pNext = *ppHead;
+    *ppHead = pNew;
+    return 1;
+}
+
+int Append(Node **ppHead, int id, const char *name)
+{
+    Node *pNew = malloc(sizeof(Node));
+    if (pNew == NULL) return 0;
+    pNew->name = CopyString(name);
+    if (pNew->name == NULL) { free(pNew); return 0; }
+    pNew->id = id;
+    pNew->pNext = NULL;
+
+    if (*ppHead == NULL) { *ppHead = pNew; return 1; }
+
+    Node *pCur = *ppHead;
+    while (pCur->pNext != NULL) pCur = pCur->pNext;
+    pCur->pNext = pNew;
+    return 1;
+}
+\end{lstlisting}
+\end{codebox}
+
+\begin{codebox}{Print and free list}
+\begin{lstlisting}[style=cstyle]
+void PrintList(const Node *pHead)
+{
+    for (const Node *p = pHead; p != NULL; p = p->pNext)
+        printf("%d %s\n", p->id, p->name);
+}
+
+void FreeList(Node *pHead)
+{
+    while (pHead != NULL) {
+        Node *pNext = pHead->pNext;
+        free(pHead->name);
+        free(pHead);
+        pHead = pNext;
+    }
+}
+\end{lstlisting}
+\end{codebox}
+
+\begin{exam}
+\textbf{Why use a double pointer for insertion at front?} The function must modify the caller's \code{pHead}. Passing \code{Node *pHead} gives only a copy of the pointer. Passing \code{Node **ppHead} gives access to the original pointer variable.\par
+\textbf{Why can linked lists handle fragmented memory better?} Each node is allocated separately, so the program does not need one large continuous memory block.
+\end{exam}
+
+\section{Trees and Trie}
+\begin{idea}
+A tree is a hierarchical structure. Each element is a node. Trees are naturally recursive because every subtree is also a tree, which is convenient, suspiciously elegant, and therefore easy to misuse.
+\end{idea}
+
+\textbf{Terminology.} Root = top node. Parent/child = direct relation. Leaf = node without children. Internal node = has child nodes. Degree = number of children. Depth = distance from root. Height = longest path from root to a leaf.
+
+\textbf{Binary search tree (BST).} Each node has up to two children. In a BST, left subtree contains smaller values, right subtree contains larger values. If balanced, search/insert is about \(O(\log n)\). If badly unbalanced, it degenerates to \(O(n)\), basically a linked list wearing a tree costume.
+
+\begin{codebox}{Full BST: structure, create node, insert}
+\begin{lstlisting}[style=cstyle]
+typedef struct TreeNode {
+    int value;
+    struct TreeNode *pLeft;
+    struct TreeNode *pRight;
+} TreeNode;
+
+TreeNode *CreateNode(int value)
+{
+    TreeNode *n = malloc(sizeof(TreeNode));
+    if (n == NULL) return NULL;
+    n->value = value;
+    n->pLeft = NULL;
+    n->pRight = NULL;
+    return n;
+}
+
+int Insert(TreeNode **ppRoot, int value)
+{
+    if (*ppRoot == NULL) {
+        *ppRoot = CreateNode(value);
+        return *ppRoot != NULL;
+    }
+    if (value < (*ppRoot)->value)
+        return Insert(&(*ppRoot)->pLeft, value);
+    if (value > (*ppRoot)->value)
+        return Insert(&(*ppRoot)->pRight, value);
+    return 1;  // duplicate ignored
+}
+\end{lstlisting}
+\end{codebox}
+
+\begin{codebox}{BST search, traversal, free}
+\begin{lstlisting}[style=cstyle]
+TreeNode *Search(TreeNode *root, int value)
+{
+    if (root == NULL || root->value == value) return root;
+    if (value < root->value) return Search(root->pLeft, value);
+    return Search(root->pRight, value);
+}
+
+void PrintInOrder(TreeNode *root)
+{
+    if (root == NULL) return;
+    PrintInOrder(root->pLeft);
+    printf("%d\n", root->value);
+    PrintInOrder(root->pRight);
+}
+
+void FreeTree(TreeNode *root)
+{
+    if (root == NULL) return;
+    FreeTree(root->pLeft);
+    FreeTree(root->pRight);
+    free(root);
+}
+\end{lstlisting}
+\end{codebox}
+
+\begin{note}
+Traversal orders: \textbf{pre-order} = node, left, right. \textbf{in-order} = left, node, right; gives sorted order in BST. \textbf{post-order} = left, right, node; useful for freeing because children are freed before parent.
+\end{note}
+
+\begin{codebox}{Trie structure only}
+\begin{lstlisting}[style=cstyle]
+#define ALPHA_LEN 26
+
+typedef struct TrieNode {
+    int isEnd;                     // true if string ends here
+    struct TrieNode *child[ALPHA_LEN];
+} TrieNode;
+\end{lstlisting}
+\end{codebox}
+
+\begin{exam}
+\textbf{Why are tree functions often recursive?} A tree node points to smaller trees: left and right subtrees. The same operation can be applied to each subtree until \code{NULL}.\par
+\textbf{Why is trie lookup fast for strings?} It follows one character per level, so lookup is proportional to string length, not number of stored strings. Cost: memory usage is high because each node keeps many child pointers.
+\end{exam}
+
+\section{Execution Time and Optimization}
+\begin{idea}
+Performance is measured, not guessed. Revolutionary concept, apparently. Timing helps compare algorithms, memory strategies, and compiler effects.
+\end{idea}
+
+\textbf{Shell \code{time}.} \code{real} is wall-clock time. \code{user} is CPU time in user mode. \code{sys} is CPU time in kernel mode: files, dynamic memory, process calls, device/driver work. \code{real} is not necessarily \code{user + sys} because waiting, scheduling, and parallelism can change the relation.
+
+\begin{codebox}{Timing with clock()}
+\begin{lstlisting}[style=cstyle]
+#include <time.h>
+
+clock_t start = clock();
+/* code to measure */
+clock_t end = clock();
+double sec = (double)(end - start) / CLOCKS_PER_SEC;
+printf("Time: %.6f s\n", sec);
+\end{lstlisting}
+\end{codebox}
+
+\begin{exam}
+\textbf{Why is doubling capacity better than reallocating by +1?} With \code{n + 1}, reallocation may happen for every inserted element: many allocations and copies. With doubling, capacity grows 4, 8, 16, 32, ... so the number of reallocations is about \(\log_2 n\).\par
+\textbf{What is thrashing?} If memory demand exceeds available RAM, the OS swaps pages to/from disk. Runtime can become dramatically slower because disk is much slower than RAM.
+\end{exam}
+
+\section{SQL and SQLite Basics}
+\begin{idea}
+A database is an organized collection of data. A DBMS manages storage, retrieval, integrity, security, and often processing. SQL is declarative: describe what result is needed, not exactly how to compute it.
+\end{idea}
+
+\textbf{Relational model.} Tables contain rows. A \textbf{primary key} uniquely identifies a row and cannot be \code{NULL}. A \textbf{foreign key} stores a reference to another table's primary key. Relationships include one-to-one, one-to-many, zero-to-many, and many-to-many. Many-to-many usually needs an extra linking table.
+
+\begin{codebox}{Small SQL examples}
+\begin{lstlisting}[style=sqlstyle]
+-- Select columns and filter rows
+SELECT fname, lname, income
+FROM person
+WHERE income > 20000
+ORDER BY income DESC
+LIMIT 5;
+
+-- Join two related tables
+SELECT person.fname, person.lname, cars.car_reg_num
+FROM person
+JOIN cars ON cars.owner_id = person.id;
+
+-- Insert strings with single quotes
+INSERT INTO person (fname, lname, income)
+VALUES ('Mari', 'Maasikas', 0);
+\end{lstlisting}
+\end{codebox}
+
+\begin{codebox}{Tiny SQLite C API pattern}
+\begin{lstlisting}[style=cstyle]
+sqlite3 *db = NULL;
+sqlite3_stmt *stmt = NULL;
+
+if (sqlite3_open("data.db", &db) != SQLITE_OK) return 1;
+
+const char *sql = "SELECT fname, lname FROM person WHERE income > ?;";
+if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) return 1;
+
+sqlite3_bind_int(stmt, 1, 20000);   // safer than building SQL strings
+while (sqlite3_step(stmt) == SQLITE_ROW) {
+    const unsigned char *fname = sqlite3_column_text(stmt, 0);
+    const unsigned char *lname = sqlite3_column_text(stmt, 1);
+    printf("%s %s\n", fname, lname);
+}
+
+sqlite3_finalize(stmt);
+sqlite3_close(db);
+\end{lstlisting}
+\end{codebox}
+
+\begin{danger}
+Do not build SQL by concatenating user input into strings. Use prepared statements and binding functions. Otherwise SQL injection becomes possible, and then the database starts taking life advice from random text input.
+\end{danger}
+
+\begin{exam}
+\textbf{DBMS vs database.} Database is the stored data. DBMS is the software that manages databases and provides access.\par
+\textbf{Why use primary/foreign keys?} They create reliable relationships between tables without duplicating all related data.
+\end{exam}
+
+\section{Sample Test Coding Strategy}
+\begin{idea}
+The sample test expects a practical C program: read any-length file into a dynamically allocated struct array, split source/header, output results, format numbers/date/time, and free memory. Tiny task. Naturally it wants all the ways C can hurt you in one place.
+\end{idea}
+
+\textbf{Typical algorithm.}
+\begin{enumerate}
+  \item Define a struct matching one file row.
+  \item Open file with \code{fopen}; check \code{NULL}.
+  \item Read using \code{fscanf}; use buffers with width limits for text fields.
+  \item Store into dynamic struct array using capacity doubling.
+  \item Process statistics: sums, averages, counters, max/common category.
+  \item Print formatted output: dates, times, percentages with 2 decimal places.
+  \item Free every dynamically allocated field and the array.
+\end{enumerate}
+
+\begin{codebox}{Sample-test style struct and reading loop}
+\begin{lstlisting}[style=cstyle]
+typedef struct {
+    int date;          // ddmmyyyy as integer from file
+    char *feeling;     // dynamically copied
+    int running, walking, standing, sitting, laying;
+} Day;
+
+int AppendDay(Day **arr, int *count, int *cap, Day item)
+{
+    if (*count == *cap) {
+        int newCap = (*cap == 0) ? 8 : (*cap * 2);
+        Day *tmp = realloc(*arr, sizeof(Day) * newCap);
+        if (tmp == NULL) return 0;
+        *arr = tmp;
+        *cap = newCap;
+    }
+    (*arr)[(*count)++] = item;
+    return 1;
+}
+\end{lstlisting}
+\end{codebox}
+
+\begin{codebox}{Reading any-length ordinary text file}
+\begin{lstlisting}[style=cstyle]
+int ReadDays(const char *fileName, Day **outArr, int *outCount)
+{
+    FILE *fp = fopen(fileName, "r");
+    if (fp == NULL) return 0;
+
+    Day *arr = NULL;
+    int count = 0, cap = 0;
+    int date, run, walk, stand, sit, lay;
+    char feelingBuf[64];
+
+    while (fscanf(fp, "%d %63s %d %d %d %d %d",
+                  &date, feelingBuf, &run, &walk, &stand, &sit, &lay) == 7) {
+        Day d;
+        d.date = date;
+        d.feeling = CopyString(feelingBuf);
+        if (d.feeling == NULL) { fclose(fp); return 0; }
+        d.running = run; d.walking = walk; d.standing = stand;
+        d.sitting = sit; d.laying = lay;
+
+        if (!AppendDay(&arr, &count, &cap, d)) {
+            free(d.feeling);
+            fclose(fp);
+            return 0;
+        }
+    }
+    fclose(fp);
+    *outArr = arr;
+    *outCount = count;
+    return 1;
+}
+\end{lstlisting}
+\end{codebox}
+
+\begin{codebox}{Processing and formatting patterns}
+\begin{lstlisting}[style=cstyle]
+static void PrintDate(int ddmmyyyy)
+{
+    int day = ddmmyyyy / 1000000;
+    int month = (ddmmyyyy / 10000) % 100;
+    int year = ddmmyyyy % 10000;
+    printf("%02d.%02d.%04d", day, month, year);
+}
+
+static void PrintTime(int minutes)
+{
+    printf("%02d:%02d", minutes / 60, minutes % 60);
+}
+
+static double ActivityPercent(const Day *d)
+{
+    return d->running * 1.37 + d->walking * 0.59 + d->standing * 0.18;
+}
+\end{lstlisting}
+\end{codebox}
+
+\begin{danger}
+If reading fails halfway after allocating strings, already allocated memory still must be freed. A good solution has a cleanup function and uses it on both normal exit and error exit.
+\end{danger}
+
+\section{Microcontroller Summary}
+\begin{idea}
+Tiny theory only, since this is not expected to dominate the exam.
+\end{idea}
+
+A microcontroller is a small integrated control unit with CPU core(s), memory, and programmable I/O. It is used instead of a PC because it is smaller, lower-power, cheaper, and produces less heat. GPIO pins can be configured as input/output using direction registers. A port is an array/group of hardware registers. ADC converts analog voltage into a digital number; DAC converts digital number into analog voltage. Precision depends on reference voltage and bit width. Microcontrollers often use Harvard architecture: program memory and data memory are separate. Basys MX3 uses PIC32MX370F512L, 80 MHz, 512 KB Flash, 128 KB SRAM.
+
+\begin{exam}
+\textbf{Why not use a PC everywhere?} Power consumption, heat, size, and cost. Microcontrollers are enough for simple control tasks and embedded systems.
+\end{exam}
+
+\section{High-Value Exam Answers}
+\begin{exam}
+\textbf{What causes memory leakage?} Losing all pointers to allocated memory, returning early without freeing, overwriting a pointer before \code{free}, forgetting to free dynamic fields inside structs, or not freeing all nodes in a linked structure.\par
+\textbf{Why do we need buffers for input?} Functions like \code{fscanf} need a temporary fixed-size array to receive text. The buffer protects the program only if width limits are used, for example \code{\%63s} for \code{char buf[64]}. Without width limits, long input can overflow the buffer.\par
+\textbf{When can buffer overflow happen?} When more characters are written than the array can store, usually due to unsafe \code{scanf("\%s", buf)}, \code{strcpy} into too-small destination, or missing space for the terminating \code{'\textbackslash0'}.\par
+\textbf{Why is \code{realloc} used with a temporary pointer?} If \code{realloc} fails, it returns \code{NULL} and the old block is still valid. Assigning directly to the original pointer loses the old address and leaks memory.\par
+\textbf{Why use \code{sizeof(*ptr)} style?} It follows the actual pointed type. If the pointer type changes, allocation size remains correct.\par
+\textbf{Why is post-order useful for freeing trees?} Children are freed first, then the parent. If the parent were freed first, its child pointers could no longer be safely accessed.\par
+\textbf{Why are linked lists slower for searching than arrays?} They do not support direct indexing. To find an element, traversal starts from the head and follows pointers one by one.\par
+\textbf{Why can a BST become slow?} If inserted values are already sorted, the tree can become a chain. Then search/insert becomes \(O(n)\) instead of \(O(\log n)\).\par
+\textbf{Why use prepared SQL statements?} They separate SQL structure from values, avoid SQL injection, and allow safe binding of values with correct types.
+\end{exam}
+
+\end{document}

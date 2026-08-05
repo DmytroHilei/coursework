@@ -1,0 +1,61 @@
+# Inline Question 1
+
+Several key design decisions were made in designing the scaled dot product attention we introduced above. Explain why the following choices were beneficial:
+1. Using multiple attention heads as opposed to one.
+2. Dividing by $\sqrt{d/h}$ before applying the softmax function. Recall that $d$ is the feature dimension and $h$ is the number of heads.
+3. Adding a linear transformation to the output of the attention operation.
+
+Only one or two sentences per choice is necessary, but be sure to be specific in addressing what would have happened without each given implementation detail, why such a situation would be suboptimal, and how the proposed implementation improves the situation.
+
+**Your Answer:**
+
+Different heads are using different similarity functions (different weights) and this helps us to get seperate views 
+For instance 1 head is good in systaxis and another in context
+
+Division by sqrt(D) helps us to normalize data in different dimentions. Some of them are higher, some are lower but it matters the same
+
+
+We are connecting outputs from seperate heads (like opinions) into 1 reasonable output
+
+# Inline Question 2
+
+Despite their recent success in large-scale image recognition tasks, ViTs often lag behind traditional CNNs when trained on smaller datasets. What underlying factor contribute to this performance gap? What techniques can be used to improve the performance of ViTs on small datasets?
+
+**Your Answer**: fill this in.
+
+
+The main reason Vision Transformers (ViTs) underperform compared to CNNs on small datasets is the lack of inductive bias. CNNs are designed with strong prior assumptions about images, such as locality (nearby pixels are related), translation invariance, and hierarchical feature extraction. These biases allow CNNs to learn meaningful visual features efficiently even with limited data.
+
+In contrast, ViTs treat images as sequences of patches and rely on self-attention to learn relationships between them. They do not inherently encode spatial structure or locality, so they must learn these properties directly from the data. This makes ViTs significantly more data-hungry and harder to train effectively on small datasets, often leading to underfitting or unstable optimization.
+
+To improve the performance of ViTs on small datasets, several techniques can be used:
+
+Data augmentation (e.g., random cropping, flipping, color jittering) to artificially increase dataset diversity.
+Regularization techniques such as dropout, weight decay, and label smoothing to prevent overfitting.
+Pretraining on large datasets followed by fine-tuning on the target dataset, which allows the model to learn general visual features beforehand.
+Hybrid architectures (e.g., CNN + ViT) that introduce convolutional inductive biases into the model.
+Smaller model configurations (fewer layers, lower embedding dimension) to reduce overfitting and improve optimization.
+Knowledge distillation from a stronger model (often a CNN) to guide the ViT during training.
+
+These approaches help compensate for the lack of inductive bias and improve generalization when training ViTs on limited data.
+
+
+
+In a Vision Transformer, the dominant cost of a self-attention layer comes from computing the attention matrix and applying it to the values. If the sequence length is N and the hidden dimension is D, then the self-attention cost scales as
+O(N^2D)
+
+For image of size HxW 
+N = HxW/P^2
+total complexity will be 
+O(H^2xW^2/P^4)
+If we double D:
+O(N^2D) -> O(N^2 x2D) - 2x times 
+
+Double height and width:
+complexity will be 16x
+
+Double patch size:
+will be reduced by 4x
+
+
+

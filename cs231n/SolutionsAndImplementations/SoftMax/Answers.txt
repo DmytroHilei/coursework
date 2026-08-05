@@ -1,0 +1,54 @@
+**Inline Question 1**
+
+Why do we expect our loss to be close to -log(0.1)? Explain briefly.**
+
+$\color{blue}{\textit Your Answer:}$ *Fill this in*
+
+It is because, before we trained the model statistically, on average, we would "guess" with a probability of 1/10.
+
+And since we are using binary cross-entropy loss, we will get:
+
+-log(p) = -(logP(A = correct)) = -log(1/10) = -log(0.1)
+
+
+
+**Inline Question 2**
+
+Although gradcheck is a reliable softmax loss, for the SVM loss, once in a while, a dimension in the gradcheck may not match exactly. What could such a discrepancy be caused by? Is it a reason for concern? What is a simple example in one dimension where an SVM loss gradient check could fail? How would changing the margin affect the frequency of this happening?
+
+Note that SVM loss for a sample $(x_i, y_i)$ is defined as: $$L_i = \sum_{j\ne y_i}\max(0, s_j - s_{y_i} + \Delta)$$ where $j$ iterates over all classes except the correct class $y_i$ and $s_j$ denotes the classifier score for $j^{th}$ class. $\Delta$ is a scalar margin. For more information, refer to 'Multiclass Support Vector Machine loss' on [this](https://cs231n.github.io/linear-classify/) page.
+
+*Hint: the SVM loss function is not strictly speaking differentiable.*
+
+
+$\color{blue}{\textit Your Answer:}$ *fill this in.*  
+
+
+The discrepancy loss may occur when we achieve the point, where the maximum function is not differentiable (0, s_j - s_{y_i} + \Delta \approx 0). And due to the finite difference's small error, we may get a value that is not exactly equal to the analytic solution. 
+This is not a problem; it happens quite rarely and gives quite a small error.
+
+
+**Inline question 3**
+
+Describe what your visualized Softmax classifier weights look like, and offer a brief explanation for why they look the way they do.
+
+$\color{blue}{\textit Your Answer:}$ *fill this in*  
+
+The weights image representation looks like a very brief averaging of the objects.
+Like sky shall be bue, horse brown, grass is green. These photos are very blurry because model did not learn well (not any features like it would be done by CNN), but general contors are visible
+
+
+**Inline Question 4** - *True or False*
+
+Suppose the overall training loss is defined as the sum of the per-datapoint loss over all training examples. It is possible to add a new datapoint to a training set that would change the softmax loss, but leave the SVM loss unchanged.
+
+
+
+$\color{blue}{\textit Your Explanation:}$
+
+
+
+SVM loss increased only if we exceeded the margin point. SoftMax always give not zero loss
+
+
+

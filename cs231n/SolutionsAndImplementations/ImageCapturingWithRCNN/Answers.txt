@@ -1,0 +1,19 @@
+# Inline Question 1
+
+In our current image captioning setup, our RNN language model produces a word at every timestep as its output. However, an alternate way to pose the problem is to train the network to operate over _characters_ (e.g. 'a', 'b', etc.) as opposed to words, so that at it every timestep, it receives the previous character as input and tries to predict the next character in the sequence. For example, the network might generate a caption like
+
+'A', ' ', 'c', 'a', 't', ' ', 'o', 'n', ' ', 'a', ' ', 'b', 'e', 'd'
+
+Can you describe one advantage of an image-captioning model that uses a character-level RNN? Can you also describe one disadvantage? HINT: there are several valid answers, but it might be useful to compare the parameter space of word-level and character-level models.
+
+**Your Answer:**
+
+
+
+
+
+Advantage:
+A character-level RNN can handle any word, including unseen or rare words, since it builds text from characters instead of relying on a fixed vocabulary. This removes the out-of-vocabulary (OOV) problem and typically reduces the size of the embedding matrix (since the character set is much smaller than a word vocabulary).
+
+Disadvantage:
+Sequences become much longer (many characters per word), which makes training slower and makes it harder for the model to capture long-range dependencies. It also increases the risk of vanishing gradients and makes the model less efficient compared to word-level approaches.

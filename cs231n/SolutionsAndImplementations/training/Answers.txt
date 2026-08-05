@@ -1,0 +1,32 @@
+## Inline Question 1:
+Did you notice any differences in the comparative difficulty of training the three-layer network vs. the five-layer network? In particular, based on your experience, which network seemed more sensitive to the initialization scale? Why do you think that is the case?
+
+## Answer:
+[FILL THIS IN]
+
+
+Yes, I did notice that setting hyperparameters is worth it for a 5-layer neural network. This can be explained by the fact that we have been using backprop for much longer. Due to that, the gradient tends to explode or vanish more likely than in a 3-layer neural network.
+
+
+
+## Inline Question 2:
+
+AdaGrad, like Adam, is a per-parameter optimization method that uses the following update rule:
+
+```
+cache += dw**2
+w += - learning_rate * dw / (np.sqrt(cache) + eps)
+```
+
+John notices that when he was training a network with AdaGrad, the updates became very small, and that his network was learning slowly. Using your knowledge of the AdaGrad update rule, why do you think the updates would become very small? Would Adam have the same issue?
+
+
+## Answer:
+[FILL THIS IN]
+
+
+
+
+Yes, indeed. We divide by sqrt(cache) + eps, which means over time, the cache will become bigger, and the weights will be changing slower.
+
+

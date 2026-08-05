@@ -1,0 +1,20 @@
+## Inline Question 1:
+What happens if we do not divide the values being passed through inverse dropout by `p` in the dropout layer? Why does that happen?
+
+## Answer:
+[FILL THIS IN]
+
+Our data will not be properly normalized. E(p * X) = pE(X) but we want to get E(X). We expect to maintain the same expected sum of activation values both during activation and inference
+
+Inference in deep learning is
+the phase where a trained model applies its learned patterns to new, unseen data to generate predictions, decisions, or outputs in real-time or batch processes
+## Inline Question 2:
+Compare the validation and training accuracies with and without dropout -- what do your results suggest about dropout as a regularizer?
+
+## Answer:
+[FILL THIS IN]
+
+Dropout showed much better accuracy by helping to avoid overfitting. The increase from 26% to 31% by reducing the amount of computations is very good result
+Overall I would tell that for that easy implementation and cost in FLOPS is it very good regulation technique
+
+

@@ -1,0 +1,26 @@
+INSERT INTO students (eid, fname, lname, uni_id)
+VALUES ('12345678901', 'Dmytro', 'Hilei', 'dhilei');
+
+INSERT INTO subjects (name_en, name_et, code, credits, assesment_type)
+VALUES ('Deep Learning for Computer Vision', 'Sügavõpe arvutinägemise jaoks', 'CS231n', 8, 'Exam');
+
+INSERT INTO declarations (student_id, subject_id, grade)
+VALUES (
+    (SELECT id FROM students WHERE eid = '12345678901'),
+    (SELECT id FROM subjects WHERE code = 'CS231n'),
+    5
+);
+
+INSERT INTO declarations (student_id, subject_id, grade)
+VALUES (
+    (SELECT id FROM students WHERE eid = '12345678901'),
+    (SELECT id FROM subjects WHERE code = 'IAX0583'),
+    5
+);
+
+INSERT INTO declarations (student_id, subject_id, grade)
+VALUES (
+    (SELECT id FROM students WHERE eid = '12345678901'),
+    (SELECT id FROM subjects WHERE code = 'IAX0010'),
+    5
+);

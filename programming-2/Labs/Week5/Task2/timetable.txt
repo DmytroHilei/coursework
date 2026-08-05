@@ -1,0 +1,20 @@
+Transport RouteNum ExpectedTimeInSeconds ScheduleTimeInSeconds 47396 version20201024
+stop 926
+bus 83 47502 47502 Kaubamaja 106 Z
+bus 23 47527 47485 Bussijaam 131 Z
+bus 24 47704 47622 Kadaka 308 Z
+bus 24 48172 48162 Kadaka 776 Z
+bus 83 48222 48222 Kaubamaja 826 Z
+bus 23 48625 48625 Bussijaam 1229 Z
+bus 24 48712 48702 Kadaka 1316 Z
+bus 83 48942 48942 Kaubamaja 1546 Z
+bus 37 49193 49193 Zoo 1797 Z
+bus 24 49242 49242 Kadaka 1846 Z
+bus 83 49662 49662 Kaubamaja 2266 Z
+bus 24 49722 49722 Kadaka 2326 Z
+bus 23 49734 49734 Bussijaam 2338 Z
+bus 24 50202 50202 Kadaka 2806 Z
+bus 83 50382 50382 Kaubamaja 2986 Z
+bus 37 50393 50393 Zoo 2997 Z
+bus 24 50682 50682 Kadaka 3286 Z
+bus 23 50814 50814 Bussijaam 3418 Z

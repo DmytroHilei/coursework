@@ -1,0 +1,66 @@
+
+
+#ifndef HEADERS_H
+#define HEADERS_H
+
+#define GOOD_FPRINTF_OUTPUT 3
+
+#define NAME_SCAN " %31[^;];"
+#define SUR_SCAN  " %31[^;];"
+#define ID_SCAN   " %15s"
+
+
+#define MIN_DAY 1
+#define MIN_MONTH 1
+#define MIN_YEAR 1900
+
+#define MAX_DAY 31
+#define MAX_MONTH 12
+#define MAX_YEAR 2100
+
+
+#define ID_LENGTH 11
+
+#define MAX_DISTANCE_TO_BIRTHDAY 14
+#define LEN_OF_YEAR 365
+#define LEN_OF_LEAP_YEAR 366
+
+#define NUMBER_OF_ARGUMENTS 2
+#define MAX_RESIDENTS 100
+
+#define GOOD_OUTPUT_OF_SCANF 3
+enum maxStringSizes {
+    MAX_NAME = 32,
+    MAX_ID = 16,
+    MAX_SURNAME = 32,
+    MAX_LINE_SIZE = 128
+};
+
+enum errorHandaling {
+    SUCCESS,
+    END_OF_FILE,
+    NO_FILE,
+    SUCCESS_READING_FILE,
+    WRONG_DATA_FORMAT,
+    WRONG_DAY,
+    WRONG_MONTH,
+    WRONG_YEAR,
+    GOOD_DAY,
+    SUCCESS_CONVERTING_BIRTH_DAY,
+    WRONG_ID_LENGTH,
+    WRONG_NUMBER_OF_ARGUMENTS,
+    ERROR_READING_DATE_FROM_USER,
+};
+
+enum conversionToBirthDate{
+    FIRST_DAY_INDEX = 5,
+    SECOND_DAY_INDEX = 6,
+    FIRST_MONTH_INDEX = 3,
+    SECOND_MONTH_INDEX = 4,
+    FIRST_YEAR_INDEX = 1,
+    SECOND_YEAR_INDEX = 2,
+    CENTURY_INDEX = 0,
+};
+
+
+#endif //HEADERS_H

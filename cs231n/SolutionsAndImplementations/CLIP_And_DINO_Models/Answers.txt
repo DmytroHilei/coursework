@@ -1,0 +1,77 @@
+**Inline Question 1** -
+
+Why does CLIP's learning depend on the batch size? If the batch size is fixed, what strategy can we use to learn rich image features?
+
+$\color{blue}{\textit Your Answer:}$
+
+
+CLIP relies on large batch sizes because it uses in-batch negatives in its contrastive loss. Each image-text pair is compared against all other pairs in the batch, so a larger batch provides more negative samples, improving feature learning. If batch size is limited, methods like memory banks or momentum encoders (e.g., MoCo) can be used to simulate a larger set of negatives.
+
+
+
+**Inline Question 2** -
+
+CLIP learns to align image and text representations in a shared latent space using a contrastive loss. How would you extend this idea to more than two modalities?
+
+$\color{blue}{\textit Your Answer:}$
+
+
+
+Extend CLIP to N modalities by training N separate encoders that all project into the same shared embedding space, optimizing pairwise contrastive losses between all modality pairs. Similarity between any two modalities remains a standard dot product in this shared space — the dimensionality of the space does not change with the number of modalities.
+
+
+
+
+
+**Inline Question 3**
+
+How do we get the tensor shapes printed above? Explain your answer.
+
+
+$\color{blue}{\textit Your Answer:}$
+
+img_tensor.shape = (1, 3, H, W)
+The image is loaded as a standard batched tensor: batch size 1, 3 RGB channels, and spatial dimensions H×W. For DINOv2 with patch size p=8, a typical input is 480x480, giving H=W=480.
+
+all_tokens.shape = (1, 1+N, D)
+This follows directly from the ViT tokenization scheme:
+
+The image is divided into non-overlapping patches of size p×p, producing N = (H/p)·(W/p) patch tokens — e.g. (480/8)² = 3600 patches.
+A learnable [CLS] token is prepended, so the sequence length becomes 1 + N.
+Each token is projected into an embedding space of dimension D (e.g. D=384 for ViT-B), which is preserved through all transformer layers.
+get_intermediate_layers(img_tensor, n=1)[0] returns the output of the last transformer block, shape (1, 1+N, D).
+
+
+patch_tokens.shape = (1, N, D)
+The slice [:, 1:, :] drops the first token (the [CLS] token) along the sequence axis, leaving only the N spatial patch tokens, each still carrying D-dimensional features. The [CLS] token is discarded here because we want per-patch spatial features, not the global image representation.
+
+
+
+**Inline Question 4** -
+
+What kind of structure do you see in the visualization above? What does it imply when a region consistently appears in a specific color? What does it mean when two regions have distinctly different color? Remember that PCA reveals the directions of highest variance in the feature space across all patches. A patch's color reflects its distinct feature content.
+
+
+$\color{blue}{\textit Your Answer:}$
+
+I see that similar regions have similar colors.
+About the region: it means it usualy have very similar features all across the photos. Such as sky or similar regions with similar properties.
+
+PCA is the algorithm to turn multidimentional features into RGB -> the closer they are in the latent space, the more similar embedding features are -> the more similar objects looks like. This is the main purpoce of DINO - to lear features of the photos via SSL.
+
+
+**Inline Question 5** -
+
+If you train a segmentation model on CLIP ViT's patch features, do you expect it to perform better or worse than DINO? Why should that be the case?
+
+
+
+$\color{blue}{\textit Your Answer:}$
+
+
+
+
+DINO should perform better for segmentation.
+CLIP's training objective is image-text contrastive matching — the model is optimized to align a global image representation with a text description. This pushes the [CLS] token to capture holistic semantics, but patch tokens end up encoding more coarse, globally-pooled information rather than precise spatial structure.
+DINO, by contrast, uses self-supervised self-distillation where the model must predict consistent patch-level representations across different crops of the same image. This directly incentivizes the network to encode local, spatially coherent features — each patch token learns to represent its own region meaningfully. The PCA visualization from the previous cell demonstrates this: DINO patch features already form clean semantic segments without any supervision.
+In other words, CLIP optimizes for what is in the image globally, while DINO optimizes in a way that naturally produces where things are spatially — which is exactly what segmentation needs.

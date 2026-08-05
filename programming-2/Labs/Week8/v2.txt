@@ -1,0 +1,12 @@
+0 Allik Kerttu MVEB 29.8
+1 Helme Sirje EARB 12.9
+2 Herkel Anna EARB 23.0
+3 Ivanov Hendrik IACB 29.1
+4 Jakobson Milvi IACB 19.5
+5 Kaasik Laivi IACB 30.0
+6 Kalda Kristi IACB 27.0
+7 Kruuse Mati IACB 17.3
+8 Kruuse Mihkel MVEB 10.6
+9 Kuusk Jevgeni MVEB 25.0
+10 Kuusk Liis MVEB 17.2
+11 Laas Tiina IACB 22.4

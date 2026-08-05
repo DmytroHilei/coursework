@@ -1,0 +1,13 @@
+index,last_name,first_name,curriculum,points
+6,Aasa,Artur,MVEB,29.0
+2,Kurg,Olga,MVEB,16.0
+5,Lilleorg,Juhan,IACB,29.2
+10,Mihhailov,Mailis,EARB,12.5
+4,Rand,Yana,IACB,13.1
+8,Saks,Monika,EARB,28.0
+7,SeppMikser,Veljo,IACB,16.1
+9,Smirnov,Mati,MVEB,17.3
+3,Sulling,Jaan,EARB,23.8
+0,Tamme,Jaan,IACB,29.8
+11,Valk,Artur,IACB,24.3
+1,Vares,Liine,IACB,22.7

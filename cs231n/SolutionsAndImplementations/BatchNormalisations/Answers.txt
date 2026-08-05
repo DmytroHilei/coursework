@@ -1,0 +1,68 @@
+## Inline Question 1:
+Describe the results of this experiment. How does the weight initialization scale affect models with/without batch normalization differently, and why?
+
+## Answer:
+[FILL THIS IN]
+
+As we see, batch normalization really helps us to make the effect of bad weight initialization much more negligible compared to the same without normalization
+With the batch normalization model adjusted to handle weights that are very small, we avoid problems with gradients and predictions. Batch normalization normalizes layer inputs to have approximately zero mean and unit variance, which stabilizes activations and gradients throughout training. This allows the network to train effectively across a much wider range of initialization scales and generally leads to better accuracy and more stable loss.
+
+## Inline Question 2:
+Describe the results of this experiment. What does this imply about the relationship between batch normalization and batch size? Why is this relationship observed?
+
+## Answer:
+[FILL THIS IN]
+
+We can see that smaller the batch worth the results (but further difference become much smaller). This is caused by the fact that small batch sizes have less statistical random variables flow and dispersion and mean are not very right comparing to big batch sizes
+
+## Inline Question 3:
+Which of these data preprocessing steps is analogous to batch normalization, and which is analogous to layer normalization?
+
+1. Scaling each image in the dataset, so that the RGB channels for each row of pixels within an image sums up to 1.
+2. Scaling each image in the dataset, so that the RGB channels for all pixels within an image sums up to 1.  
+3. Subtracting the mean image of the dataset from each image in the dataset.
+4. Setting all RGB values to either 0 or 1 depending on a given threshold.
+
+## Answer:
+[FILL THIS IN]
+
+Batch normalization:
+
+(3) Subtracting the mean image of the dataset from each image in the dataset.
+
+This is analogous because batch normalization normalizes across the batch (dataset-level statistics) for each feature/channel.
+
+
+Layer normalization:
+
+(2) Scaling each image so that the RGB channels for all pixels within an image sum to 1.
+
+This is analogous because layer normalization normalizes within each individual sample, using statistics computed from that sample only.
+
+
+## Inline Question 4:
+When is layer normalization likely to not work well, and why?
+
+1. Using it in a very deep network
+2. Having a very small dimension of features
+3. Having a high regularization term
+
+
+## Answer:
+[FILL THIS IN]
+
+Correct choice: 2. Having a very small dimension of features
+
+Layer normalization computes mean and variance across the feature dimension for each individual sample. If the number of features is very small, these statistics become unreliable and noisy, leading to poor normalization and unstable training.
+
+
+
+
+
+
+
+
+
+
+
+
